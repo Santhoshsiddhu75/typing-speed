@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { RefreshCw } from 'lucide-react';
+import TypingInput from './TypingInput';
 
 // Sample text passages for the typing test
 const sampleTexts = [
@@ -45,6 +46,8 @@ const getRandomText = () => {
 const TypingTest = () => {
   const [currentText, setCurrentText] = useState('');
   const [error, setError] = useState(null);
+  const [isTypingActive, setIsTypingActive] = useState(false);
+  const [typingProgress, setTypingProgress] = useState(null);
 
   // Select a random text passage when component loads
   useEffect(() => {
@@ -57,6 +60,21 @@ const TypingTest = () => {
     const { text, error } = getRandomText();
     setCurrentText(text);
     setError(error);
+    setIsTypingActive(false);
+    setTypingProgress(null);
+  }, []);
+
+  const handleTypingProgress = useCallback((progress) => {
+    setTypingProgress(progress);
+    if (!isTypingActive && progress.charactersTyped > 0) {
+      setIsTypingActive(true);
+    }
+  }, [isTypingActive]);
+
+  const handleTypingComplete = useCallback((result) => {
+    setIsTypingActive(false);
+    console.log('Typing completed:', result);
+    // TODO: Add completion handling (save result, show stats, etc.)
   }, []);
 
   return (
@@ -90,42 +108,39 @@ const TypingTest = () => {
             </Card>
           )}
 
-          {/* Text Passage */}
-          <Card className="bg-gray-50">
-            <CardContent className="pt-4 sm:pt-6">
-              <p 
-                className="text-base sm:text-lg leading-relaxed font-mono break-words"
-                role="document"
-                aria-label="Text passage to type"
-                id="typing-text"
-              >
-                {currentText}
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Placeholder for future input area */}
-          <Card className="border-dashed border-2">
-            <CardContent className="pt-4 sm:pt-6 text-center">
-              <p className="text-gray-500 italic text-sm sm:text-base">
-                Typing input area will be implemented in the next phase
-              </p>
-            </CardContent>
-          </Card>
+          {/* Typing Input Area */}
+          <TypingInput 
+            targetText={currentText}
+            onComplete={handleTypingComplete}
+            onProgressUpdate={handleTypingProgress}
+          />
         </CardContent>
       </Card>
 
-      {/* New Text Button */}
-      <div className="text-center">
+      {/* New Text Button and Progress Info */}
+      <div className="text-center space-y-4">
+        {typingProgress && (
+          <div className="text-sm text-gray-600">
+            <div className="flex justify-center gap-4">
+              <span>Progress: {Math.round((typingProgress.charactersTyped / typingProgress.totalCharacters) * 100)}%</span>
+              {typingProgress.charactersTyped > 0 && (
+                <span>Characters: {typingProgress.charactersTyped}/{typingProgress.totalCharacters}</span>
+              )}
+            </div>
+          </div>
+        )}
+        
         <Button 
           onClick={handleNewText} 
           size="lg" 
           className="gap-2 w-full sm:w-auto"
-          aria-describedby="typing-text"
           aria-label="Generate a new text passage for typing practice"
+          disabled={isTypingActive}
         >
           <RefreshCw className="h-4 w-4" aria-hidden="true" />
-          <span className="text-sm sm:text-base">Get New Text</span>
+          <span className="text-sm sm:text-base">
+            {isTypingActive ? 'Finish typing to get new text' : 'Get New Text'}
+          </span>
         </Button>
       </div>
     </div>

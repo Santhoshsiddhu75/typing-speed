@@ -16,10 +16,11 @@ describe('TypingTest Component', () => {
     // Check if instruction text is present
     expect(screen.getByText('Type the following text:')).toBeInTheDocument();
     
-    // Check if there's some text content by looking for the text display area
-    const textDisplay = screen.getByText(/The quick brown fox|In the heart of every|Technology has revolutionized|Reading is to the mind|The art of cooking/);
-    expect(textDisplay).toBeInTheDocument();
-    expect(textDisplay.textContent.length).toBeGreaterThan(0);
+    // Check if typing instructions are present (new typing interface)
+    expect(screen.getByText('Click here and start typing')).toBeInTheDocument();
+    
+    // Check if progress indicator is present
+    expect(screen.getByText(/Progress: 0 \//)).toBeInTheDocument();
   });
 
   it('changes text when "Get New Text" button is clicked', () => {
@@ -33,15 +34,16 @@ describe('TypingTest Component', () => {
     // Verify the button is still present and functional 
     expect(button).toBeInTheDocument();
     
-    // Verify text is still displayed (even if it's the same random text)
-    const textDisplay = screen.getByText(/The quick brown fox|In the heart of every|Technology has revolutionized|Reading is to the mind|The art of cooking/);
-    expect(textDisplay).toBeInTheDocument();
+    // Verify typing interface is still present after text change
+    expect(screen.getByText('Click here and start typing')).toBeInTheDocument();
   });
 
-  it('shows placeholder for future input area', () => {
+  it('shows typing interface instead of placeholder', () => {
     render(<TypingTest />);
     
-    expect(screen.getByText('Typing input area will be implemented in the next phase')).toBeInTheDocument();
+    // The typing interface should now be present instead of placeholder
+    expect(screen.getByText('Click here and start typing')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /type the displayed text here/i })).toBeInTheDocument();
   });
 
   it('does not show error message when text is valid', () => {
@@ -55,10 +57,15 @@ describe('TypingTest Component', () => {
     // These tests verify the validation functions work (we can't easily mock them in this setup)
     render(<TypingTest />);
     
-    // All our sample texts should be valid (between 50-500 chars)
-    const textDisplay = screen.getByText(/The quick brown fox|In the heart of every|Technology has revolutionized|Reading is to the mind|The art of cooking/);
-    expect(textDisplay.textContent.length).toBeGreaterThanOrEqual(50);
-    expect(textDisplay.textContent.length).toBeLessThanOrEqual(500);
+    // Check that progress indicator shows a reasonable character count (our texts are 50-500 chars)
+    const progressText = screen.getByText(/Progress: 0 \/ \d+/);
+    expect(progressText).toBeInTheDocument();
+    
+    // Extract the total character count from the progress text
+    const match = progressText.textContent.match(/Progress: 0 \/ (\d+)/);
+    const totalChars = parseInt(match[1]);
+    expect(totalChars).toBeGreaterThanOrEqual(50);
+    expect(totalChars).toBeLessThanOrEqual(500);
   });
 
   it('uses responsive design classes', () => {
@@ -91,12 +98,11 @@ describe('TypingTest Component', () => {
     // Check for proper button accessibility
     const button = screen.getByRole('button', { name: /generate a new text passage for typing practice/i });
     expect(button).toBeInTheDocument();
-    expect(button).toHaveAttribute('aria-describedby', 'typing-text');
     
-    // Check for text passage accessibility
-    const textPassage = screen.getByRole('document');
-    expect(textPassage).toHaveAttribute('aria-label', 'Text passage to type');
-    expect(textPassage).toHaveAttribute('id', 'typing-text');
+    // Check for typing input accessibility
+    const textbox = screen.getByRole('textbox', { name: /type the displayed text here/i });
+    expect(textbox).toHaveAttribute('aria-label', 'Type the displayed text here');
+    expect(textbox).toHaveAttribute('tabIndex', '0');
   });
 
   it('uses semantic HTML elements', () => {
