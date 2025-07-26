@@ -37,7 +37,7 @@ describe('TypingInput Component', () => {
     const textArea = screen.getByRole('textbox', { name: /type the displayed text here/i });
     fireEvent.click(textArea);
     
-    expect(textArea).toHaveClass('border-blue-500');
+    expect(textArea).toHaveClass('border-blue-400');
   });
 
   it('calls onProgressUpdate when typing', () => {

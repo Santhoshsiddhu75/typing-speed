@@ -1,3 +1,152 @@
+@custom-variant dark (&:is(.dark *));
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.625rem;
+  
+  /* Brand Colors - Modern Gradient Palette */
+  --background: oklch(0.99 0.005 106);
+  --foreground: oklch(0.15 0.02 242);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0.02 242);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.02 242);
+  
+  /* Primary: Modern Teal */
+  --primary: oklch(0.55 0.15 180);
+  --primary-foreground: oklch(0.98 0.01 180);
+  
+  /* Secondary: Sophisticated Purple */
+  --secondary: oklch(0.9 0.03 270);
+  --secondary-foreground: oklch(0.35 0.08 270);
+  
+  /* Muted: Subtle Gray */
+  --muted: oklch(0.96 0.01 240);
+  --muted-foreground: oklch(0.45 0.02 240);
+  
+  /* Accent: Electric Blue */
+  --accent: oklch(0.92 0.05 240);
+  --accent-foreground: oklch(0.25 0.08 240);
+  
+  /* System Colors */
+  --destructive: oklch(0.62 0.22 25);
+  --border: oklch(0.89 0.02 240);
+  --input: oklch(0.92 0.02 240);
+  --ring: oklch(0.55 0.15 180);
+  
+  /* Chart Colors - Professional Data Viz */
+  --chart-1: oklch(0.55 0.15 180); /* Teal */
+  --chart-2: oklch(0.5 0.18 270);  /* Purple */
+  --chart-3: oklch(0.6 0.2 45);    /* Orange */
+  --chart-4: oklch(0.45 0.16 150); /* Green */
+  --chart-5: oklch(0.65 0.18 320); /* Pink */
+  
+  /* Sidebar */
+  --sidebar: oklch(0.98 0.01 240);
+  --sidebar-foreground: oklch(0.15 0.02 242);
+  --sidebar-primary: oklch(0.55 0.15 180);
+  --sidebar-primary-foreground: oklch(0.98 0.01 180);
+  --sidebar-accent: oklch(0.92 0.05 240);
+  --sidebar-accent-foreground: oklch(0.25 0.08 240);
+  --sidebar-border: oklch(0.89 0.02 240);
+  --sidebar-ring: oklch(0.55 0.15 180);
+}
+
+.dark {
+  /* Dark Brand Colors */
+  --background: oklch(0.08 0.01 242);
+  --foreground: oklch(0.95 0.01 180);
+  --card: oklch(0.12 0.02 242);
+  --card-foreground: oklch(0.95 0.01 180);
+  --popover: oklch(0.12 0.02 242);
+  --popover-foreground: oklch(0.95 0.01 180);
+  
+  /* Primary: Bright Teal for dark mode */
+  --primary: oklch(0.65 0.18 180);
+  --primary-foreground: oklch(0.08 0.01 242);
+  
+  /* Secondary: Deep Purple */
+  --secondary: oklch(0.2 0.05 270);
+  --secondary-foreground: oklch(0.85 0.03 270);
+  
+  /* Muted: Dark Gray */
+  --muted: oklch(0.18 0.02 242);
+  --muted-foreground: oklch(0.65 0.02 240);
+  
+  /* Accent: Bright Blue */
+  --accent: oklch(0.25 0.08 240);
+  --accent-foreground: oklch(0.85 0.05 240);
+  
+  /* System Colors */
+  --destructive: oklch(0.7 0.2 25);
+  --border: oklch(0.25 0.03 242);
+  --input: oklch(0.2 0.03 242);
+  --ring: oklch(0.65 0.18 180);
+  
+  /* Chart Colors - Dark Mode Optimized */
+  --chart-1: oklch(0.65 0.18 180); /* Bright Teal */
+  --chart-2: oklch(0.6 0.2 270);   /* Bright Purple */
+  --chart-3: oklch(0.7 0.22 45);   /* Bright Orange */
+  --chart-4: oklch(0.55 0.18 150); /* Bright Green */
+  --chart-5: oklch(0.75 0.2 320);  /* Bright Pink */
+  
+  /* Sidebar */
+  --sidebar: oklch(0.12 0.02 242);
+  --sidebar-foreground: oklch(0.95 0.01 180);
+  --sidebar-primary: oklch(0.65 0.18 180);
+  --sidebar-primary-foreground: oklch(0.08 0.01 242);
+  --sidebar-accent: oklch(0.25 0.08 240);
+  --sidebar-accent-foreground: oklch(0.85 0.05 240);
+  --sidebar-border: oklch(0.25 0.03 242);
+  --sidebar-ring: oklch(0.65 0.18 180);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

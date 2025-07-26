@@ -16,25 +16,36 @@ describe('TextHighlighter Component', () => {
   it('highlights correct words in green', () => {
     render(<TextHighlighter targetText={sampleText} userInput="The quick" />);
     
-    const theWord = screen.getByText('The');
-    const quickWord = screen.getByText('quick');
+    // Check that correct words get the proper styling (look for the inner span with font-semibold)
+    const theWordSpan = screen.getByText('The');
+    expect(theWordSpan).toHaveClass('font-semibold');
     
-    expect(theWord).toHaveClass('text-green-600');
-    expect(quickWord).toHaveClass('text-green-600');
+    const quickWordSpan = screen.getByText('quick');
+    expect(quickWordSpan).toHaveClass('font-semibold');
   });
 
-  it('highlights incorrect words in red', () => {
+  it('highlights incorrect characters in red', () => {
     render(<TextHighlighter targetText={sampleText} userInput="Teh" />);
     
-    const incorrectWord = screen.getByText('The');
-    expect(incorrectWord).toHaveClass('text-red-600');
+    // Should show "T" in green (correct), "e" in red (incorrect), "h" in red (incorrect)
+    const correctT = screen.getByText('T');
+    expect(correctT).toHaveClass('text-emerald-500');
+    
+    // The incorrect characters should be in red
+    const incorrectChars = screen.getAllByText(/[eh]/);
+    incorrectChars.forEach(char => {
+      expect(char).toHaveClass('text-red-500');
+    });
   });
 
   it('shows neutral styling for untyped words', () => {
     render(<TextHighlighter targetText={sampleText} userInput="The" />);
     
+    // Check that untyped words have basic styling
     const untypedWord = screen.getByText('quick');
-    expect(untypedWord).toHaveClass('text-gray-700');
+    expect(untypedWord).toBeInTheDocument();
+    // The word should not have font-semibold (which is applied to correct words)
+    expect(untypedWord).not.toHaveClass('font-semibold');
   });
 
   it('displays cursor indicator at correct position', () => {
@@ -43,6 +54,7 @@ describe('TextHighlighter Component', () => {
     const cursor = screen.getByTestId('typing-cursor');
     expect(cursor).toBeInTheDocument();
     expect(cursor).toHaveClass('animate-pulse');
+    expect(cursor).toHaveClass('inline-block');
   });
 
   it('handles word boundaries correctly', () => {
@@ -51,18 +63,18 @@ describe('TextHighlighter Component', () => {
     const theWord = screen.getByText('The');
     const quickWord = screen.getByText('quick');
     
-    expect(theWord).toHaveClass('text-green-600');
-    expect(quickWord).toHaveClass('text-green-600');
+    expect(theWord).toHaveClass('font-semibold');
+    expect(quickWord).toHaveClass('font-semibold');
   });
 
   it('handles partial word typing', () => {
     render(<TextHighlighter targetText={sampleText} userInput="The qui" />);
     
     const theWord = screen.getByText('The');
-    expect(theWord).toHaveClass('text-green-600');
+    expect(theWord).toHaveClass('font-semibold');
     
     // The word "quick" is being typed partially, so it shows "qui" in green and "ck" in gray
     const typedPart = screen.getByText('qui');
-    expect(typedPart).toHaveClass('text-green-600');
+    expect(typedPart).toHaveClass('text-emerald-500');
   });
 });

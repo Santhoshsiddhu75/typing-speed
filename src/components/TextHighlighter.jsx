@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { cn } from '@/lib/utils';
 
 const TextHighlighter = ({ targetText, userInput }) => {
   const analysis = useMemo(() => {
@@ -6,6 +7,9 @@ const TextHighlighter = ({ targetText, userInput }) => {
     const userWords = userInput.split(' ');
     const currentWordIndex = userWords.length - 1;
     const currentPartialWord = userWords[currentWordIndex] || '';
+    
+    // Check if user just finished a word (input ends with space)
+    const justFinishedWord = userInput.endsWith(' ') && userInput.trim() !== '';
     
     return words.map((word, index) => {
       if (index < currentWordIndex) {
@@ -18,12 +22,21 @@ const TextHighlighter = ({ targetText, userInput }) => {
         };
       } else if (index === currentWordIndex) {
         // Current word being typed
-        if (currentPartialWord === '') {
+        if (currentPartialWord === '' && justFinishedWord) {
+          // Just finished previous word, show cursor at start of next word
           return {
             text: word,
             status: 'neutral',
             isComplete: false,
-            showCursor: true
+            showCursorAtStart: true
+          };
+        } else if (currentPartialWord === '' && !justFinishedWord) {
+          // Starting the first word or beginning of typing
+          return {
+            text: word,
+            status: 'neutral',
+            isComplete: false,
+            showCursorAtStart: true
           };
         } else if (word.startsWith(currentPartialWord)) {
           return {
@@ -34,11 +47,13 @@ const TextHighlighter = ({ targetText, userInput }) => {
             remainingPart: word.slice(currentPartialWord.length)
           };
         } else {
+          // Word doesn't match what user typed - show character-level errors
           return {
             text: word,
-            status: 'incorrect',
+            status: 'character-error',
             isComplete: false,
-            typedPart: currentPartialWord
+            typedPart: currentPartialWord,
+            remainingPart: word.slice(currentPartialWord.length)
           };
         }
       } else {
@@ -52,20 +67,50 @@ const TextHighlighter = ({ targetText, userInput }) => {
     });
   }, [targetText, userInput]);
 
-  const getWordClassName = (status) => {
+  const getWordClasses = (status) => {
     switch (status) {
       case 'correct':
-        return 'text-green-600 bg-green-50';
+        return 'text-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30 transition-all duration-200';
       case 'incorrect':
-        return 'text-red-600 bg-red-50';
+        return 'text-red-500 bg-red-50/50 dark:bg-red-950/30 transition-all duration-200';
       case 'in-progress':
-        return 'text-blue-600 bg-blue-50';
+        return 'text-primary bg-primary/10 dark:bg-primary/20 transition-all duration-200';
       default:
-        return 'text-gray-700';
+        return 'text-muted-foreground transition-all duration-200 hover:text-foreground/80';
     }
   };
 
+  const renderCharacterErrors = (typedText, targetWord) => {
+    const chars = [];
+    for (let i = 0; i < typedText.length; i++) {
+      const typedChar = typedText[i];
+      const targetChar = targetWord[i];
+      const isCorrect = typedChar === targetChar;
+      
+      chars.push(
+        <span 
+          key={i} 
+          className={cn(
+            'font-semibold px-0.5 rounded-sm transition-all duration-150',
+            isCorrect 
+              ? 'text-emerald-500 bg-emerald-100/60 dark:bg-emerald-900/40' 
+              : 'text-red-500 bg-red-100/60 dark:bg-red-900/40 animate-pulse'
+          )}
+        >
+          {typedChar}
+        </span>
+      );
+    }
+    return chars;
+  };
+
   const shouldShowCursorAfter = (wordAnalysis, index) => {
+    // Don't show cursor after word if the next word already has showCursorAtStart
+    const nextWord = analysis[index + 1];
+    if (nextWord && nextWord.showCursorAtStart) {
+      return false;
+    }
+    
     // Show cursor after the word if we just finished typing it correctly
     if (wordAnalysis.status === 'correct' && index === analysis.findIndex(w => w.status === 'neutral') - 1) {
       return true;
@@ -74,35 +119,58 @@ const TextHighlighter = ({ targetText, userInput }) => {
   };
 
   return (
-    <div className="text-lg leading-relaxed font-mono break-words select-none">
-      {analysis.map((wordAnalysis, index) => (
-        <span key={index} className="inline-block">
-          <span className={`px-1 py-0.5 rounded transition-colors duration-200 ${getWordClassName(wordAnalysis.status)}`}>
-            {wordAnalysis.status === 'in-progress' ? (
-              <>
-                <span className="text-green-600">{wordAnalysis.typedPart}</span>
-                <span className="relative">
-                  <span className="text-gray-700">{wordAnalysis.remainingPart}</span>
+    <div className="text-xl leading-relaxed font-mono select-none p-6 rounded-xl bg-gradient-to-br from-background/50 to-muted/30 backdrop-blur-sm border border-border/30" style={{ minHeight: '16rem', lineHeight: '1.6' }}>
+      <div className="flex flex-wrap gap-x-1 gap-y-2">
+        {analysis.map((wordAnalysis, index) => (
+          <span key={index} className="inline-flex items-center">
+            {wordAnalysis.showCursorAtStart && (
+              <span 
+                data-testid="typing-cursor"
+                className="inline-block w-0.5 h-6 bg-primary mr-0.5 animate-pulse rounded-full shadow-sm"
+              />
+            )}
+            <span className={cn(
+              'px-1 py-0.5 rounded-md font-medium transition-all duration-300 hover:scale-[1.02]',
+              getWordClasses(wordAnalysis.status)
+            )}>
+              {wordAnalysis.status === 'in-progress' ? (
+                <>
+                  <span className="text-emerald-500 font-semibold bg-emerald-100/40 dark:bg-emerald-900/30 px-0.5 rounded-sm">
+                    {wordAnalysis.typedPart}
+                  </span>
                   <span 
                     data-testid="typing-cursor"
-                    className="absolute left-0 top-0 w-0.5 h-full bg-blue-500 animate-pulse"
-                    style={{ left: `${wordAnalysis.typedPart.length * 0.6}em` }}
+                    className="inline-block w-0.5 h-6 bg-primary mx-0.5 animate-pulse rounded-full shadow-glow"
                   />
+                  <span className="text-muted-foreground/70">{wordAnalysis.remainingPart}</span>
+                </>
+              ) : wordAnalysis.status === 'character-error' ? (
+                <>
+                  {renderCharacterErrors(wordAnalysis.typedPart, wordAnalysis.text)}
+                  <span 
+                    data-testid="typing-cursor"
+                    className="inline-block w-0.5 h-6 bg-red-500 mx-0.5 animate-pulse rounded-full shadow-sm"
+                  />
+                  <span className="text-muted-foreground/50">{wordAnalysis.remainingPart}</span>
+                </>
+              ) : (
+                <span className={cn(
+                  wordAnalysis.status === 'correct' && 'font-semibold shadow-sm',
+                  wordAnalysis.status === 'incorrect' && 'font-semibold line-through decoration-2 decoration-red-500'
+                )}>
+                  {wordAnalysis.text}
                 </span>
-              </>
-            ) : (
-              wordAnalysis.text
+              )}
+            </span>
+            {shouldShowCursorAfter(wordAnalysis, index) && (
+              <span 
+                data-testid="typing-cursor"
+                className="inline-block w-0.5 h-6 bg-primary ml-1 animate-pulse rounded-full shadow-sm"
+              />
             )}
           </span>
-          {shouldShowCursorAfter(wordAnalysis, index) && (
-            <span 
-              data-testid="typing-cursor"
-              className="inline-block w-0.5 h-6 bg-blue-500 animate-pulse ml-1"
-            />
-          )}
-          {index < analysis.length - 1 && ' '}
-        </span>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };
